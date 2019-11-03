@@ -1,6 +1,6 @@
-import { Application } from "express";
-import { Request, Response } from "express";
-import { CampaignService } from "../services/campaign.service";
+import { Application } from 'express';
+import { Request, Response } from 'express';
+import { CampaignService } from '../services/campaignService';
 
 export class UserController {
   private userService: CampaignService;

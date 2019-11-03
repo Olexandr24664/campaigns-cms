@@ -7,10 +7,8 @@
     {
       "type": "node",
       "request": "attach",
-      "name": "Launch Program",
-      "processId": "${command:PickProcess}",
-      "restart": true,
-      "protocol": "inspector"
+      "name": "Attach by Process ID",
+      "processId": "${command:PickProcess}"
     }
   ]
 }

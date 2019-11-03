@@ -1,9 +1,9 @@
-import express, { Application } from "express";
-import bodyParser from "body-parser";
-import cors from "cors";
-import mongoose from "mongoose";
+import express, { Application } from 'express';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import mongoose from 'mongoose';
 
-import { CampaignController } from "./controllers/campaign.conroller";
+import { CampaignController } from './controllers/campaignController';
 
 class App {
   public app: Application;
@@ -18,17 +18,18 @@ class App {
   }
 
   private setConfig() {
-    this.app.use(bodyParser.json({ limit: "50mb" }));
-    this.app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+    this.app.use(bodyParser.json());
+    this.app.use(bodyParser.urlencoded({ extended: true }));
     this.app.use(cors());
   }
 
   private setMongoConfig() {
     mongoose.Promise = global.Promise;
     mongoose
-      .connect("mongodb://localhost:27017/campaigns", {
+      .connect('mongodb://localhost:27017/campaigns', {
         useNewUrlParser: true,
-        useUnifiedTopology: true
+        useUnifiedTopology: true,
+        useCreateIndex: true,
       })
       .catch(err => console.log(err));
   }
