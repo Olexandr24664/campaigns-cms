@@ -10,12 +10,7 @@ export class CampaignService {
   }
 
   public async getAllCampaigns() {
-    try {
-      return await Campaign.find();
-    } catch (e) {
-      console.log(e);
-      throw e;
-    }
+    return await Campaign.find();
   }
 
   public async createNewCampaign(campaignData: ICampaign, imgPath?: String) {
@@ -34,7 +29,21 @@ export class CampaignService {
     }
   }
 
-  public update() {}
+  public async approve(campaignId: String, approve: Boolean) {
+    const update: { approve: Boolean; launchDate?: Date } = {
+      approve: approve,
+    };
+
+    if (approve === true) {
+      update.launchDate = new Date();
+    }
+
+    const queryResp = await Campaign.findByIdAndUpdate(campaignId, update, {
+      new: true,
+    });
+
+    return queryResp;
+  }
 
   public delete() {}
 }

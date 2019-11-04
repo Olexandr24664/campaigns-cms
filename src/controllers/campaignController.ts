@@ -1,9 +1,9 @@
-import { Application } from 'express';
-import { Request, Response } from 'express';
+import { Application, Request, Response } from 'express';
 import upload from '../multer.config';
 import { CampaignService } from '../services/campaignService';
+import { ICampaignController } from '../types/index';
 
-export class CampaignController {
+export class CampaignController implements ICampaignController {
   private campaignService: CampaignService;
 
   constructor(private app: Application) {
@@ -17,8 +17,7 @@ export class CampaignController {
       .get(this.getAllCampaigns)
       .post(upload, this.createNewCampaign);
     this.app.route('/campaigns/:id').get(this.getByID);
-    this.app.route('/campaigns/:id/accept').patch(this.accept);
-    this.app.route('/campaigns/:id/reject/').patch(this.reject);
+    this.app.route('/campaigns/:id/approve').patch(this.approve);
   }
 
   getByID = async (req: Request, res: Response) => {
@@ -42,14 +41,6 @@ export class CampaignController {
     }
   };
 
-  accept = async (req: Request, res: Response) => {
-    return res.status(501);
-  };
-
-  reject = async (req: Request, res: Response) => {
-    return res.status(501);
-  };
-
   createNewCampaign = async (req: Request, res: Response) => {
     try {
       let campaign;
@@ -64,6 +55,31 @@ export class CampaignController {
       return res.status(201).send(campaign);
     } catch (e) {
       return res.status(400).send(e);
+    }
+  };
+
+  approve = async (req: Request, res: Response) => {
+    if (typeof req.body.approve !== 'boolean') {
+      return res
+        .status(400)
+        .send({ message: 'No or wrong type of approve param' });
+    }
+
+    try {
+      const queryResp = await this.campaignService.approve(
+        req.params.id,
+        req.body.approve
+      );
+
+      if (!queryResp) {
+        return res.status(404).send({
+          message: `Campaign with this id ${req.params.id} wasn't found`,
+        });
+      }
+
+      return res.status(501).send(queryResp);
+    } catch (e) {
+      return res.status(500).send(e);
     }
   };
 }

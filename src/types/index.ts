@@ -1,9 +1,16 @@
 export interface ICampaign {
   title: String;
-  description: String;
-  launchDate: String;
-  time: String;
-  author: String;
-  img: String;
-  video: String;
+  user_id?: String;
+  description?: String;
+  launchDate?: Date;
+  days: Number;
+  img?: String;
+  video?: String;
+  approve?: Boolean;
 }
+
+export interface IUser {
+  name: String;
+}
+
+export interface ICampaignController {}
