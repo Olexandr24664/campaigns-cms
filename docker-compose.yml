@@ -1,0 +1,7 @@
+version: '3.3'
+services:
+  mongodb:
+    container_name: cmstarter-mongodb
+    image: mongo
+    ports:
+      - '27017:27017'

@@ -1,16 +1,19 @@
 export interface ICampaign {
-  title: String;
-  user_id?: String;
-  description?: String;
+  title: string;
+  user_id?: string;
+  description?: string;
   launchDate?: Date;
-  days: Number;
-  img?: String;
-  video?: String;
-  approve?: Boolean;
+  days: string;
+  img?: string;
+  video?: string;
+  goal: number;
+  raised: number;
+  approve?: boolean;
+  donators_ids: string[];
 }
 
 export interface IUser {
-  name: String;
+  name: string;
 }
 
 export interface ICampaignController {}

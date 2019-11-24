@@ -1,6 +1,6 @@
 import app from './app';
-const PORT = 9999;
-const HOST = '127.0.0.1';
+const PORT: number = parseInt(process.env.PORT || '9999');
+const HOST: string = process.env.HOST || '127.0.0.1';
 
 try {
   app.listen(PORT, HOST, () =>

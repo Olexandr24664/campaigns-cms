@@ -4,7 +4,7 @@ import { ICampaign } from '../types';
 import { Campaign } from '../models/campaign';
 
 export class CampaignService {
-  public async getById(id: String) {
+  public async getById(id: string) {
     const campaign = await Campaign.findById(id);
     return campaign;
   }
@@ -13,7 +13,7 @@ export class CampaignService {
     return await Campaign.find();
   }
 
-  public async createNewCampaign(campaignData: ICampaign, imgPath?: String) {
+  public async createNewCampaign(campaignData: ICampaign, imgPath?: string) {
     if (imgPath) {
       campaignData.img = imgPath;
     }
@@ -29,7 +29,7 @@ export class CampaignService {
     }
   }
 
-  public async approve(campaignId: String, approve: Boolean) {
+  public async approve(campaignId: string, approve: boolean) {
     const update: { approve: Boolean; launchDate?: Date } = {
       approve: approve,
     };
