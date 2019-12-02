@@ -1,9 +1,9 @@
 import { Application, Request, Response } from 'express';
+import passport from 'passport';
 import upload from '../multer.config';
 import { CampaignService } from '../services/campaignService';
-import { ICampaignController } from '../types/index';
 
-export class CampaignController implements ICampaignController {
+export class CampaignController {
   private campaignService: CampaignService;
 
   constructor(private app: Application) {
@@ -15,9 +15,32 @@ export class CampaignController implements ICampaignController {
     this.app
       .route('/campaigns')
       .get(this.getAllCampaigns)
-      .post(upload, this.createNewCampaign);
+      .post(
+        passport.authenticate('jwt', {
+          session: false,
+          assignProperty: 'userPayload',
+        }),
+        upload,
+        this.createNewCampaign
+      );
     this.app.route('/campaigns/:id').get(this.getByID);
-    this.app.route('/campaigns/:id/approve').patch(this.approve);
+    this.app.route('/campaigns/:id/approve').patch(
+      passport.authenticate('jwt', {
+        session: false,
+        assignProperty: 'userPayload',
+      }),
+      this.approve
+    );
+    this.app.route('/campaigns/:id/donate').post(
+      passport.authenticate('jwt', {
+        session: false,
+        assignProperty: 'userPayload',
+      }),
+      this.donate
+    );
+    this.app
+      .route('/campaigns/:id/donate_anonymous')
+      .post(this.donateAnonymous);
   }
 
   getByID = async (req: Request, res: Response) => {
@@ -35,22 +58,43 @@ export class CampaignController implements ICampaignController {
   getAllCampaigns = async (req: Request, res: Response) => {
     try {
       const campaigns = await this.campaignService.getAllCampaigns();
-      return res.status(200).send(campaigns);
+      return campaigns.length
+        ? res.status(200).send(campaigns)
+        : res.sendStatus(404);
     } catch (e) {
       return res.status(404).send(e);
     }
   };
 
   createNewCampaign = async (req: Request, res: Response) => {
+    if (
+      !req.body.title ||
+      !req.body.description ||
+      !req.body.days ||
+      !req.body.goal
+    ) {
+      return res.status(400).send({
+        message: 'Missing required params: title | description | days | goal',
+      });
+    }
+
+    if (!req.userPayload) {
+      return res.sendStatus(403);
+    }
+
     try {
       let campaign;
       if (req.file) {
         campaign = await this.campaignService.createNewCampaign(
           req.body,
+          req.userPayload._id,
           req.file.path
         );
       } else {
-        campaign = await this.campaignService.createNewCampaign(req.body);
+        campaign = await this.campaignService.createNewCampaign(
+          req.body,
+          req.userPayload._id
+        );
       }
       return res.status(201).send(campaign);
     } catch (e) {
@@ -59,16 +103,20 @@ export class CampaignController implements ICampaignController {
   };
 
   approve = async (req: Request, res: Response) => {
-    if (typeof req.body.approve !== 'boolean') {
+    if (!req.userPayload || req.userPayload.role !== 'admin') {
+      return res.sendStatus(403);
+    }
+
+    if (typeof req.body.approved !== 'boolean') {
       return res
         .status(400)
-        .send({ message: 'No or wrong type of approve param' });
+        .send({ message: 'Missing or wrong type of approve param' });
     }
 
     try {
       const queryResp = await this.campaignService.approve(
         req.params.id,
-        req.body.approve
+        req.body.approved
       );
 
       if (!queryResp) {
@@ -77,9 +125,40 @@ export class CampaignController implements ICampaignController {
         });
       }
 
-      return res.status(501).send(queryResp);
+      return res.status(200).send(queryResp);
     } catch (e) {
       return res.status(500).send(e);
+    }
+  };
+
+  donate = async (req: Request, res: Response) => {
+    if (!req.userPayload) {
+      return res.sendStatus(403);
+    }
+
+    if (!req.body.amount || req.body.amount <= 0) {
+      return res.status(400).send({ message: 'Amount must be > 0' });
+    }
+
+    try {
+      await this.campaignService.donate(
+        req.params.id,
+        req.body.amount,
+        false,
+        req.userPayload._id
+      );
+      return res.sendStatus(200);
+    } catch (e) {
+      return res.status(404).send(e.message);
+    }
+  };
+
+  donateAnonymous = async (req: Request, res: Response) => {
+    try {
+      await this.campaignService.donate(req.params.id, req.body.amount, true);
+      return res.sendStatus(200);
+    } catch (e) {
+      return res.status(404).send(e.message);
     }
   };
 }

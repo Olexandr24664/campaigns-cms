@@ -1,21 +1,30 @@
-import mongoose from 'mongoose';
-import { ICampaign } from '../types/index';
+import mongoose, { Schema } from 'mongoose';
+import { ICampaign } from '../interfaces/index';
 
-interface ICampaignModel extends ICampaign, mongoose.Document {}
+export interface ICampaignModel extends ICampaign, mongoose.Document {}
 
-const campaignSchema = new mongoose.Schema({
-  title: { type: String, required: true, unique: true },
-  description: String,
+const CampaignSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String, required: true },
   launchDate: Date,
   days: { type: Number, required: true },
-  img: String,
-  video: String,
   goal: { type: Number, required: true },
   raised: { type: Number, default: 0 },
-  approve: Boolean,
+  img: String,
+  video: String,
+  approved: Boolean,
+  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  donators: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Donator',
+    },
+  ],
 });
 
-export const Campaign = mongoose.model<ICampaignModel>(
+const CampaignModel = mongoose.model<ICampaignModel>(
   'Campaign',
-  campaignSchema
+  CampaignSchema
 );
+
+export default CampaignModel;

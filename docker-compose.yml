@@ -5,3 +5,4 @@ services:
     image: mongo
     ports:
       - '27017:27017'
+    entrypoint: ['/usr/bin/mongod', '--bind_ip_all', '--replSet', 'rs0']

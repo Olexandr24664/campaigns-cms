@@ -1,6 +1,5 @@
 import app from './app';
-const PORT: number = parseInt(process.env.PORT || '9999');
-const HOST: string = process.env.HOST || '127.0.0.1';
+import { HOST, PORT } from './dotenv.config';
 
 try {
   app.listen(PORT, HOST, () =>
