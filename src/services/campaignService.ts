@@ -5,7 +5,14 @@ import { startSession } from 'mongoose';
 
 export class CampaignService {
   public async getById(id: string) {
-    const campaign = await CampaignModel.findById(id).exec();
+    const campaign = await CampaignModel.findById(id)
+      .populate({
+        path: 'donators',
+        select: 'amount date anonymous',
+        populate: { path: 'user', select: '_id name' },
+      })
+      .populate('user', '_id name')
+      .exec();
     return campaign;
   }
 
@@ -13,7 +20,7 @@ export class CampaignService {
     return await CampaignModel.find()
       .populate({
         path: 'donators',
-        select: 'amount date',
+        select: 'amount date anonymous',
         populate: { path: 'user', select: '_id name' },
       })
       .populate('user', '_id name')

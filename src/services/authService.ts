@@ -9,10 +9,25 @@ interface UserDTO {
   email: string;
   password: string;
 }
+
+// authentication will take approximately 13 seconds
+// https://pthree.org/wp-content/uploads/2016/06/bcrypt.png
+const saltRounds = 10;
 export class AuthService {
   public async signupLocal(userDTO: UserDTO) {
     try {
-      const passwordHash = await this._hashPassword(userDTO.password);
+      const existedUser = await UserModel.findOne({
+        $or: [
+          { email: userDTO.email },
+          { 'accounts.kind': 'google', 'accounts.email': userDTO.email },
+        ],
+      }).exec();
+      if (existedUser) {
+        const err = Error('User already registered');
+        throw err;
+      }
+
+      const passwordHash = await bcrypt.hash(userDTO.password, saltRounds);
       const userData: IUser = {
         name: userDTO.name || 'anonymous user',
         email: userDTO.email,
@@ -32,7 +47,6 @@ export class AuthService {
 
       return { payload, token };
     } catch (e) {
-      console.log(e);
       throw e;
     }
   }
@@ -51,7 +65,7 @@ export class AuthService {
         existedUser.accounts.find(a => a.kind === 'internal') ||
         ({} as IUserAccount);
 
-      const passwordMatch = bcrypt.compare(
+      const passwordMatch = await bcrypt.compare(
         userDTO.password,
         internalUserA.passwordHash || ''
       );
@@ -63,7 +77,6 @@ export class AuthService {
         throw new Error('wrong password');
       }
     } catch (e) {
-      console.log(e);
       throw e;
     }
   }
@@ -92,7 +105,6 @@ export class AuthService {
 
       return { payload, token };
     } catch (e) {
-      console.log(e);
       throw e;
     }
   }
@@ -117,7 +129,6 @@ export class AuthService {
 
       return { payload, token };
     } catch (e) {
-      console.log(e);
       throw e;
     }
   }
@@ -126,11 +137,6 @@ export class AuthService {
     userModel: IUserModel,
     accountKind: string
   ): { payload: any; token: string } {
-    if (accountKind === 'internal') {
-      const internalUserA =
-        userModel.accounts.find(a => a.kind === 'internal') ||
-        ({} as IUserAccount);
-    }
     const payload = {
       _id: userModel._id,
       name: userModel.name,
@@ -144,19 +150,4 @@ export class AuthService {
 
     return { payload, token };
   }
-
-  _hashPassword = async (password: string): Promise<string> => {
-    // authentication will take approximately 13 seconds
-    // https://pthree.org/wp-content/uploads/2016/06/bcrypt.png
-    const saltRounds = 10;
-
-    const hashedPassword = await new Promise<string>((resolve, reject) => {
-      bcrypt.hash(password, saltRounds, function(err, hash) {
-        if (err) reject(err);
-        resolve(hash);
-      });
-    });
-
-    return hashedPassword;
-  };
 }

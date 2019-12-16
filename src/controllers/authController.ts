@@ -26,7 +26,6 @@ export class AuthController {
     );
     this.app.route('/auth/signup/google/callback').get(
       passport.authenticate('signupgoogle', {
-        failureRedirect: '/signup',
         session: false,
       }),
       this.signupGoogle
@@ -38,7 +37,6 @@ export class AuthController {
     );
     this.app.route('/auth/login/google/callback').get(
       passport.authenticate('logingoogle', {
-        failureRedirect: '/signup',
         session: false,
       }),
       this.loginGoogle
@@ -55,7 +53,7 @@ export class AuthController {
       return res.status(404).send('not valid credentials.');
     }
     try {
-      const { token } = await this.authService.signupLocal({
+      const { payload, token } = await this.authService.signupLocal({
         name: req.body.name,
         email: req.body.email,
         password: req.body.password,
@@ -67,7 +65,12 @@ export class AuthController {
           secure: false,
         })
         .status(200)
-        .send();
+        .send({
+          name: payload.name,
+          email: payload.email,
+          role: payload.role,
+          accountKind: payload.accountKind,
+        });
     } catch (e) {
       return res.status(400).send(e.message);
     }
@@ -78,7 +81,7 @@ export class AuthController {
       return res.status(404).send('not valid credentials.');
     }
     try {
-      const { token } = await this.authService.loginLocal({
+      const { payload, token } = await this.authService.loginLocal({
         name: '',
         email: req.body.email,
         password: req.body.password,
@@ -90,7 +93,12 @@ export class AuthController {
           secure: false,
         })
         .status(200)
-        .send();
+        .send({
+          name: payload.name,
+          email: payload.email,
+          role: payload.role,
+          accountKind: payload.accountKind,
+        });
     } catch (e) {
       return res.status(400).send(e.message);
     }
@@ -107,7 +115,8 @@ export class AuthController {
         })
         .redirect(CMSSSTARTER_APP_URL);
     } catch (e) {
-      return res.status(400).send(e.message);
+      const url = CMSSSTARTER_APP_URL + '?error=signupGoogle&msg=' + e.message;
+      return res.redirect(url);
     }
   };
 
@@ -122,7 +131,8 @@ export class AuthController {
         })
         .redirect(CMSSSTARTER_APP_URL);
     } catch (e) {
-      return res.status(400).send(e.message);
+      const url = CMSSSTARTER_APP_URL + '?error=loginGoogle&msg=' + e.message;
+      return res.redirect(url);
     }
   };
 

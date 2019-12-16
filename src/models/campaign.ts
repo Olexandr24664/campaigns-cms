@@ -22,6 +22,14 @@ const CampaignSchema = new mongoose.Schema({
   ],
 });
 
+CampaignSchema.set('toJSON', {
+  virtuals: true,
+  transform: (doc, ret) => {
+    delete ret.__v;
+    delete ret._id;
+  },
+});
+
 const CampaignModel = mongoose.model<ICampaignModel>(
   'Campaign',
   CampaignSchema

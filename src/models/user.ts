@@ -18,6 +18,14 @@ const UserSchema = new mongoose.Schema({
   accounts: [UserAccountSchema],
 });
 
+UserSchema.set('toJSON', {
+  virtuals: true,
+  transform: (doc, ret) => {
+    delete ret.__v;
+    delete ret._id;
+  },
+});
+
 const UserModel = mongoose.model<IUserModel>('User', UserSchema);
 
 export default UserModel;
