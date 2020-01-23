@@ -27,14 +27,7 @@ export class CampaignService {
       .exec();
   }
 
-  public async createNewCampaign(
-    campaignData: ICampaign,
-    userId: string,
-    imgPath?: string
-  ) {
-    if (imgPath) {
-      campaignData.img = imgPath;
-    }
+  public async createNewCampaign(campaignData: ICampaign, userId: string) {
     campaignData.user = userId;
     const newCampaign = new CampaignModel(campaignData);
     try {

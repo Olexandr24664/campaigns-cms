@@ -32,8 +32,8 @@ class App {
 
   private setConfig() {
     this.app.use(cookieParser());
-    this.app.use(bodyParser.json());
-    this.app.use(bodyParser.urlencoded({ extended: true }));
+    this.app.use(bodyParser.json({ limit: '15mb' }));
+    this.app.use(bodyParser.urlencoded({ extended: true, limit: '15mb' }));
     this.app.use('/uploads', express.static('uploads'));
     this.app.use(
       cors({

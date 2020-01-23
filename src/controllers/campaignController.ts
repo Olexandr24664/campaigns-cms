@@ -71,10 +71,12 @@ export class CampaignController {
       !req.body.title ||
       !req.body.description ||
       !req.body.days ||
-      !req.body.goal
+      !req.body.goal ||
+      !req.body.img
     ) {
       return res.status(400).send({
-        message: 'Missing required params: title | description | days | goal',
+        message:
+          'Missing required params: title | description | days | goal | img',
       });
     }
 
@@ -84,18 +86,10 @@ export class CampaignController {
 
     try {
       let campaign;
-      if (req.file) {
-        campaign = await this.campaignService.createNewCampaign(
-          req.body,
-          req.userPayload._id,
-          req.file.path
-        );
-      } else {
-        campaign = await this.campaignService.createNewCampaign(
-          req.body,
-          req.userPayload._id
-        );
-      }
+      campaign = await this.campaignService.createNewCampaign(
+        req.body,
+        req.userPayload._id
+      );
       return res.status(201).send(campaign);
     } catch (e) {
       return res.status(400).send(e);

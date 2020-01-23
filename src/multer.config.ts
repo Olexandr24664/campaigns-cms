@@ -21,6 +21,10 @@ function fileFilter(
   }
 }
 
-var upload = multer({ storage, fileFilter }).single('img');
+var upload = multer({
+  storage,
+  fileFilter,
+  limits: { fieldSize: 15728640, fileSize: 15728640 },
+}).single('img');
 
 export default upload;

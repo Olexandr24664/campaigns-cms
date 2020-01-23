@@ -15,69 +15,61 @@ interface UserDTO {
 const saltRounds = 10;
 export class AuthService {
   public async signupLocal(userDTO: UserDTO) {
-    try {
-      const existedUser = await UserModel.findOne({
-        $or: [
-          { email: userDTO.email },
-          { 'accounts.kind': 'google', 'accounts.email': userDTO.email },
-        ],
-      }).exec();
-      if (existedUser) {
-        const err = Error('User already registered');
-        throw err;
-      }
-
-      const passwordHash = await bcrypt.hash(userDTO.password, saltRounds);
-      const userData: IUser = {
-        name: userDTO.name || 'anonymous user',
-        email: userDTO.email,
-        role: 'regular',
-        accounts: [
-          {
-            kind: 'internal',
-            email: userDTO.email,
-            userName: userDTO.name,
-            passwordHash: passwordHash,
-          },
-        ],
-      };
-
-      const savedUser = await new UserModel(userData).save();
-      const { payload, token } = this._generateToken(savedUser, 'internal');
-
-      return { payload, token };
-    } catch (e) {
-      throw e;
+    const existedUser = await UserModel.findOne({
+      $or: [
+        { email: userDTO.email },
+        { 'accounts.kind': 'google', 'accounts.email': userDTO.email },
+      ],
+    }).exec();
+    if (existedUser) {
+      const err = Error('User already registered');
+      throw err;
     }
+
+    const passwordHash = await bcrypt.hash(userDTO.password, saltRounds);
+    const userData: IUser = {
+      name: userDTO.name || 'anonymous user',
+      email: userDTO.email,
+      role: 'regular',
+      accounts: [
+        {
+          kind: 'internal',
+          email: userDTO.email,
+          userName: userDTO.name,
+          passwordHash: passwordHash,
+        },
+      ],
+    };
+
+    const savedUser = await new UserModel(userData).save();
+    const { payload, token } = this._generateToken(savedUser, 'internal');
+
+    return { payload, token };
   }
 
   public async loginLocal(userDTO: UserDTO) {
-    try {
-      const existedUser = await UserModel.findOne({
-        $or: [{ 'accounts.kind': 'internal', 'accounts.email': userDTO.email }],
-      }).exec();
+    const existedUser = await UserModel.findOne({
+      $or: [{ 'accounts.kind': 'internal', 'accounts.email': userDTO.email }],
+    }).exec();
 
-      if (!existedUser) {
-        const err = Error('No user with an email ' + userDTO.email);
-        throw err;
-      }
-      const internalUserA =
-        existedUser.accounts.find(a => a.kind === 'internal') ||
-        ({} as IUserAccount);
+    if (!existedUser) {
+      const err = Error('No user with an email ' + userDTO.email);
+      throw err;
+    }
+    const internalUserA =
+      existedUser.accounts.find(a => a.kind === 'internal') ||
+      ({} as IUserAccount);
 
-      const passwordMatch = await bcrypt.compare(
-        userDTO.password,
-        internalUserA.passwordHash || ''
-      );
+    const passwordMatch = await bcrypt.compare(
+      userDTO.password,
+      internalUserA.passwordHash || ''
+    );
 
-      if (passwordMatch) {
-        const { payload, token } = this._generateToken(existedUser, 'internal');
-        return { payload, token };
-      } else {
-        throw new Error('wrong password');
-      }
-    } catch (e) {
-      throw e;
+    if (passwordMatch) {
+      const { payload, token } = this._generateToken(existedUser, 'internal');
+      return { payload, token };
+    } else {
+      throw new Error('wrong password');
     }
   }
 
@@ -88,25 +80,21 @@ export class AuthService {
       throw Error('no user data');
     }
 
-    try {
-      const existedUser = await UserModel.findOne({
-        $or: [
-          { email: user.email },
-          { 'accounts.kind': 'google', 'accounts.email': user.email },
-        ],
-      }).exec();
-      if (existedUser) {
-        const err = Error('User already registered');
-        throw err;
-      }
-
-      const savedUser = await new UserModel(user).save();
-      const { payload, token } = this._generateToken(savedUser, 'google');
-
-      return { payload, token };
-    } catch (e) {
-      throw e;
+    const existedUser = await UserModel.findOne({
+      $or: [
+        { email: user.email },
+        { 'accounts.kind': 'google', 'accounts.email': user.email },
+      ],
+    }).exec();
+    if (existedUser) {
+      const err = Error('User already registered');
+      throw err;
     }
+
+    const savedUser = await new UserModel(user).save();
+    const { payload, token } = this._generateToken(savedUser, 'google');
+
+    return { payload, token };
   }
 
   public async loginGoogle(
@@ -116,21 +104,17 @@ export class AuthService {
       throw Error('no user data');
     }
 
-    try {
-      const existedUser = await UserModel.findOne({
-        $or: [{ email: user.email }, { 'accounts.uid': user.accounts[0].uid }],
-      }).exec();
-      if (!existedUser) {
-        const err = Error("User isn't registered");
-        throw err;
-      }
-
-      const { payload, token } = this._generateToken(existedUser, 'google');
-
-      return { payload, token };
-    } catch (e) {
-      throw e;
+    const existedUser = await UserModel.findOne({
+      $or: [{ email: user.email }, { 'accounts.uid': user.accounts[0].uid }],
+    }).exec();
+    if (!existedUser) {
+      const err = Error("User isn't registered");
+      throw err;
     }
+
+    const { payload, token } = this._generateToken(existedUser, 'google');
+
+    return { payload, token };
   }
 
   _generateToken(
