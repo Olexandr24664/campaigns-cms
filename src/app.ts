@@ -47,7 +47,7 @@ class App {
   }
 
   private async setMongoConfig() {
-    if (CLOUD_DB) {
+    if (!CLOUD_DB) {
       await this.setMongoLocalConfig();
     } else {
       await this.setMongoCloudConfig();
